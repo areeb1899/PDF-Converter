@@ -6,9 +6,9 @@ WORKDIR /app
 
 # Install necessary system dependencies
 RUN apt-get update && apt-get install -y \
+    qpdf \
     libreoffice \
     poppler-utils \
-    ghostscript \
     ca-certificates \
     fonts-dejavu \
     && apt-get clean \
