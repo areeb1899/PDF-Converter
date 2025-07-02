@@ -6,13 +6,13 @@ WORKDIR /app
 
 # Install necessary system dependencies
 RUN apt-get update && apt-get install -y \
-    qpdf \
-    libreoffice \
-    poppler-utils \
-    ca-certificates \
-    fonts-dejavu \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+  libreoffice \
+  poppler-utils \
+  qpdf \
+  ca-certificates \
+  fonts-dejavu \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy only package.json and lock file first for better caching
 COPY package*.json ./

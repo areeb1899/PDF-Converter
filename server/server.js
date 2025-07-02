@@ -12,7 +12,8 @@ app.use(express.json());
 app.use("/converted", express.static(path.join(__dirname, "converted")));
 
 
-app.use("/api", convertRoutes);
+app.use("/api/convert", convertRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
