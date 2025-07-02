@@ -4,11 +4,8 @@ const path = require("path");
 const { exec } = require("child_process");
 const fs = require("fs");
 const sharp = require("sharp");
-const pdfPoppler = require("pdf-poppler");
+
 const router = express.Router();
-
-
-
 
 // Setup Multer for file uploads
 const storage = multer.diskStorage({
@@ -22,16 +19,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Route: POST /api/convert/word-to-pdf
+// Word to PDF
 router.post("/convert/word-to-pdf", upload.single("file"), (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
 
   const inputPath = path.join(__dirname, "..", req.file.path);
   const outputDir = path.join(__dirname, "..", "converted");
 
-  // soffice CLI command
   const command = `soffice --headless --convert-to pdf "${inputPath}" --outdir "${outputDir}"`;
-
 
   exec(command, (err, stdout, stderr) => {
     if (err) {
@@ -40,25 +35,20 @@ router.post("/convert/word-to-pdf", upload.single("file"), (req, res) => {
     }
 
     const outputFileName = path.basename(req.file.filename, path.extname(req.file.filename)) + ".pdf";
-
     const outputPath = `/converted/${outputFileName}`;
 
-    // Clean up uploaded file
     fs.unlinkSync(inputPath);
-
     return res.json({ success: true, downloadUrl: outputPath });
   });
 });
 
-
-// Route: POST /api/convert/jpg-to-pdf
+// JPG to PDF
 router.post("/convert/jpg-to-pdf", upload.single("file"), (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
 
   const inputPath = path.join(__dirname, "..", req.file.path);
   const outputDir = path.join(__dirname, "..", "converted");
 
-  // Convert to PDF using soffice (LibreOffice)
   const command = `soffice --headless --convert-to pdf "${inputPath}" --outdir "${outputDir}"`;
 
   exec(command, (err, stdout, stderr) => {
@@ -70,54 +60,41 @@ router.post("/convert/jpg-to-pdf", upload.single("file"), (req, res) => {
     const outputFileName = path.basename(req.file.filename, path.extname(req.file.filename)) + ".pdf";
     const outputPath = `/converted/${outputFileName}`;
 
-    // Remove original uploaded file
     fs.unlinkSync(inputPath);
-
     return res.json({ success: true, downloadUrl: outputPath });
   });
 });
 
-
-
-// Route: POST /api/convert/pdf-to-jpg
+// PDF to JPG (using pdftoppm)
 router.post("/convert/pdf-to-jpg", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
 
   const inputPath = path.join(__dirname, "..", req.file.path);
   const outputDir = path.join(__dirname, "..", "converted");
   const baseName = path.basename(req.file.filename, path.extname(req.file.filename));
+  const outputPrefix = path.join(outputDir, baseName);
 
-  const opts = {
-    format: "jpeg",
-    out_dir: outputDir,
-    out_prefix: baseName,
-    page: null, // null means convert all pages
-  };
+  const command = `pdftoppm "${inputPath}" "${outputPrefix}" -jpeg`;
 
-  try {
-    await pdfPoppler.convert(inputPath, opts);
+  exec(command, (err, stdout, stderr) => {
+    if (err) {
+      console.error("pdftoppm error:", stderr);
+      return res.status(500).json({ error: "Failed to convert PDF to JPG" });
+    }
 
-    // Find all generated JPGs like baseName-1.jpg, baseName-2.jpg
-    const files = fs.readdirSync(outputDir)
-      .filter(f => f.startsWith(baseName) && f.endsWith(".jpg"))
+    const files = fs
+      .readdirSync(outputDir)
+      .filter((f) => f.startsWith(baseName) && f.endsWith(".jpg"))
       .sort();
 
-    const downloadUrls = files.map(f => `/converted/${f}`);
+    const downloadUrls = files.map((f) => `/converted/${f}`);
 
-    // Remove uploaded PDF
     fs.unlinkSync(inputPath);
-
     return res.json({ success: true, files: downloadUrls });
-  } catch (err) {
-    console.error("PDF to JPG error:", err);
-    return res.status(500).json({ error: "Failed to convert PDF to JPG" });
-  }
+  });
 });
 
-
-
-
-// PDF Compression using qpdf
+// PDF Compression (qpdf)
 router.post("/convert/compress-pdf", upload.single("file"), (req, res) => {
   const inputPath = req.file.path;
   const outputPath = path.join("converted", `compressed-${Date.now()}.pdf`);
@@ -125,7 +102,7 @@ router.post("/convert/compress-pdf", upload.single("file"), (req, res) => {
   const qpdfCommand = `qpdf --object-streams=generate --stream-data=compress "${inputPath}" "${outputPath}"`;
 
   exec(qpdfCommand, (error, stdout, stderr) => {
-    fs.unlinkSync(inputPath); // cleanup
+    fs.unlinkSync(inputPath);
 
     if (error) {
       console.error("Compression error:", error);
@@ -136,14 +113,14 @@ router.post("/convert/compress-pdf", upload.single("file"), (req, res) => {
   });
 });
 
-//merging pdf
+// PDF Merge
 router.post("/convert/merge-pdf", upload.array("files"), async (req, res) => {
   const PDFMerger = (await import("pdf-merger-js")).default;
   if (!req.files || req.files.length < 2) {
     return res.status(400).json({ error: "Upload at least two PDF files." });
   }
-  const merger = new PDFMerger();
 
+  const merger = new PDFMerger();
   const outputPath = path.join("converted", `merged-${Date.now()}.pdf`);
 
   try {
@@ -154,9 +131,7 @@ router.post("/convert/merge-pdf", upload.array("files"), async (req, res) => {
 
     await merger.save(outputPath);
 
-    // Clean up uploaded files
-    req.files.forEach(file => fs.unlinkSync(file.path));
-
+    req.files.forEach((file) => fs.unlinkSync(file.path));
     return res.json({ file: "/" + outputPath });
   } catch (err) {
     console.error("Merge error:", err);

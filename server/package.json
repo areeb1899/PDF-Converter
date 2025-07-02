@@ -5,7 +5,6 @@
     "express": "^5.1.0",
     "multer": "^2.0.1",
     "pdf-merger-js": "^5.1.2",
-    "pdf-poppler": "^0.2.1",
     "sharp": "^0.34.2"
   }
 }
