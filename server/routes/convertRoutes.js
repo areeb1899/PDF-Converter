@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Word to PDF
-router.post("/convert/word-to-pdf", upload.single("file"), (req, res) => {
+router.post("/word-to-pdf", upload.single("file"), (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
 
   const inputPath = path.join(__dirname, "..", req.file.path);
@@ -43,7 +43,7 @@ router.post("/convert/word-to-pdf", upload.single("file"), (req, res) => {
 });
 
 // JPG to PDF
-router.post("/convert/jpg-to-pdf", upload.single("file"), (req, res) => {
+router.post("/jpg-to-pdf", upload.single("file"), (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
 
   const inputPath = path.join(__dirname, "..", req.file.path);
@@ -66,7 +66,7 @@ router.post("/convert/jpg-to-pdf", upload.single("file"), (req, res) => {
 });
 
 // PDF to JPG (using pdftoppm)
-router.post("/convert/pdf-to-jpg", upload.single("file"), async (req, res) => {
+router.post("/pdf-to-jpg", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
 
   const inputPath = path.join(__dirname, "..", req.file.path);
@@ -95,7 +95,7 @@ router.post("/convert/pdf-to-jpg", upload.single("file"), async (req, res) => {
 });
 
 // PDF Compression (qpdf)
-router.post("/convert/compress-pdf", upload.single("file"), (req, res) => {
+router.post("/compress-pdf", upload.single("file"), (req, res) => {
   const inputPath = req.file.path;
   const outputPath = path.join("converted", `compressed-${Date.now()}.pdf`);
 
@@ -114,7 +114,7 @@ router.post("/convert/compress-pdf", upload.single("file"), (req, res) => {
 });
 
 // PDF Merge
-router.post("/convert/merge-pdf", upload.array("files"), async (req, res) => {
+router.post("/merge-pdf", upload.array("files"), async (req, res) => {
   const PDFMerger = (await import("pdf-merger-js")).default;
   if (!req.files || req.files.length < 2) {
     return res.status(400).json({ error: "Upload at least two PDF files." });
