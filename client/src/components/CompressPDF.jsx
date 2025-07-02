@@ -3,6 +3,10 @@ import axios from "axios";
 import { motion } from "framer-motion";
 
 const CompressPDF = () => {
+  const BASE_URL = import.meta.env.PROD
+    ? "https://pdf-converter-qsbi.onrender.com"
+    : "http://localhost:5000";
+
   const [file, setFile] = useState(null);
   const [compressedURL, setCompressedURL] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +32,7 @@ const CompressPDF = () => {
       setLoading(true);
       setProgressText("Uploading...");
 
-      const res = await axios.post("http://localhost:5000/api/convert/compress-pdf", formData, {
+      const res = await axios.post(`${BASE_URL}/api/convert/compress-pdf`, formData, {
         onUploadProgress: (e) => {
           const percent = Math.round((e.loaded * 100) / e.total);
           setProgressPercent(percent);
@@ -36,7 +40,7 @@ const CompressPDF = () => {
         },
       });
 
-      setCompressedURL(`http://localhost:5000${res.data.file}`);
+      setCompressedURL(`${BASE_URL}${res.data.file}`);
       setProgressText("Compression complete!");
     } catch (err) {
       setError("Compression failed. Try again.");
@@ -94,9 +98,8 @@ const CompressPDF = () => {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           {loading ? "Compressing..." : "Compress PDF"}
         </button>

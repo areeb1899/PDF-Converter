@@ -3,6 +3,9 @@ import axios from "axios";
 import { motion } from "framer-motion";
 
 const PDFToJPG = () => {
+  const BASE_URL = import.meta.env.PROD
+    ? "https://pdf-converter-qsbi.onrender.com"
+    : "http://localhost:5000";
   const [file, setFile] = useState(null);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,7 @@ const PDFToJPG = () => {
       setLoading(true);
       setProgressText("Uploading...");
 
-      const res = await axios.post("http://localhost:5000/api/convert/pdf-to-jpg", formData, {
+      const res = await axios.post(`${BASE_URL}/api/convert/pdf-to-jpg`, formData, {
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadPercent(percent);
@@ -36,7 +39,7 @@ const PDFToJPG = () => {
         },
       });
 
-      setImages(res.data.files.map((url) => `http://localhost:5000${url}`));
+      setImages(res.data.files.map((url) => `${BASE_URL}${url}`));
       setProgressText("Conversion complete!");
       setError("");
     } catch (err) {
@@ -98,9 +101,8 @@ const PDFToJPG = () => {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           {loading ? "Processing..." : "Convert to JPG"}
         </button>

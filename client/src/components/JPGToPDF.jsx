@@ -3,6 +3,10 @@ import axios from "axios";
 import { motion } from "framer-motion";
 
 const JPGToPDF = () => {
+  const BASE_URL = import.meta.env.PROD
+    ? "https://pdf-converter-qsbi.onrender.com"
+    : "http://localhost:5000";
+
   const [file, setFile] = useState(null);
   const [downloadLink, setDownloadLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,8 +26,8 @@ const JPGToPDF = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:5000/api/convert/jpg-to-pdf", formData);
-      setDownloadLink(`http://localhost:5000${res.data.downloadUrl}`);
+      const res = await axios.post(`${BASE_URL}/api/convert/jpg-to-pdf`, formData);
+      setDownloadLink(`${BASE_URL}${res.data.downloadUrl}`);
       setError("");
     } catch (err) {
       setError("Conversion failed. Try again.");
@@ -80,9 +84,8 @@ const JPGToPDF = () => {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           {loading ? "Converting..." : "Convert to PDF"}
         </button>

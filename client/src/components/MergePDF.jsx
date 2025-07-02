@@ -5,6 +5,9 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { FiFilePlus, FiTrash2, FiMove } from "react-icons/fi";
 
 const MergePDF = () => {
+  const BASE_URL = import.meta.env.PROD
+    ? "https://pdf-converter-qsbi.onrender.com"
+    : "http://localhost:5000";
   const [files, setFiles] = useState([]);
   const [mergedURL, setMergedURL] = useState("");
   const [error, setError] = useState("");
@@ -43,7 +46,7 @@ const MergePDF = () => {
       setLoading(true);
       setProgressText("Uploading...");
 
-      const res = await axios.post("http://localhost:5000/api/convert/merge-pdf", formData, {
+      const res = await axios.post(`${BASE_URL}/api/convert/merge-pdf`, formData, {
         onUploadProgress: (e) => {
           const percent = Math.round((e.loaded * 100) / e.total);
           setProgressPercent(percent);
@@ -51,7 +54,7 @@ const MergePDF = () => {
         },
       });
 
-      setMergedURL(`http://localhost:5000${res.data.file}`);
+      setMergedURL(`${BASE_URL}${res.data.file}`);
       setProgressText("Merge complete!");
     } catch (err) {
       setError("Merging failed. Try again.");
@@ -136,9 +139,8 @@ const MergePDF = () => {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`mt-6 inline-block w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 font-medium text-white rounded ${loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           {loading ? "Merging..." : "Merge PDF"}
         </button>

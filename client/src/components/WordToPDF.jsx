@@ -3,6 +3,9 @@ import axios from "axios";
 import { motion } from "framer-motion";
 
 const WordToPDF = () => {
+   const BASE_URL = import.meta.env.PROD
+    ? "https://pdf-converter-qsbi.onrender.com"
+    : "http://localhost:5000";
   const [file, setFile] = useState(null);
   const [downloadLink, setDownloadLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,8 +25,8 @@ const WordToPDF = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:5000/api/convert/word-to-pdf", formData);
-      setDownloadLink(`http://localhost:5000${res.data.downloadUrl}`);
+      const res = await axios.post(`${BASE_URL}/api/convert/word-to-pdf`, formData);
+      setDownloadLink(`${BASE_URL}${res.data.downloadUrl}`);
       setError("");
     } catch (err) {
       setError("Conversion failed. Try again.");
