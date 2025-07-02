@@ -5,9 +5,9 @@ const { exec } = require("child_process");
 const fs = require("fs");
 const sharp = require("sharp");
 const pdfPoppler = require("pdf-poppler");
-
-
 const router = express.Router();
+
+
 
 
 // Setup Multer for file uploads
@@ -115,23 +115,33 @@ router.post("/convert/pdf-to-jpg", upload.single("file"), async (req, res) => {
 });
 
 
+const isWindows = process.platform === "win32";
+const gsBinary = isWindows ? "gswin64c" : "gs";
+
 // PDF Compression Endpoint
 router.post("/convert/compress-pdf", upload.single("file"), (req, res) => {
   const inputPath = req.file.path;
   const outputPath = path.join("converted", `compressed-${Date.now()}.pdf`);
+  const gsCommand = `${gsBinary} -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`;
 
-  const gsCommand = `gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${outputPath} ${inputPath}`;
+  // const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`;
+  // const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`;
 
-  exec(gsCommand, (error) => {
+  // const gsCommand = `gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${outputPath} ${inputPath}`;
+
+  exec(gsCommand, (error, stdout, stderr) => {
     fs.unlinkSync(inputPath); // cleanup
 
     if (error) {
-      console.error("Compression error:", error);
-      return res.status(500).json({ error: "Compression failed" });
+      console.error("Compression failed:", error.message);
+      console.error("stderr:", stderr);
+      console.error("stdout:", stdout);
+      return res.status(500).json({ error: "Compression failed", detail: stderr });
     }
 
     return res.json({ file: "/" + outputPath });
   });
+
 });
 
 
